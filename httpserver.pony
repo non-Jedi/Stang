@@ -23,7 +23,7 @@ actor Main
   Http server responding according to matrix.org protocol.
   """
   new create(env: Env) =>
-    let service = "50000"
+    let service: String val = "50000"
     let limit: USize = 100
     let host = "localhost"
 
@@ -96,7 +96,19 @@ class BackendHandler is HTTPHandler
 
     // Create lambda iso so that we can respond from other actors
     let respond = {(response: Payload iso) => _session(consume response)} iso
-    Stang.create(consume respond)
+    // Only pass to matrix if path starts with /_matrix/
+    let first_path_component =
+      try
+        request.url.path.split(where delim="/")(1)
+      else
+        ""
+      end
+    if first_path_component == "_matrix" then
+      Stang.create(request, consume respond)
+    else
+      let response: Payload iso = Payload.response(StatusNotFound)
+      respond(consume response)
+    end
 
 actor Stang
   """
@@ -105,7 +117,7 @@ actor Stang
   actual processing of the request.
   """
 
-  new create(respond: {(Payload iso)} iso) =>
+  new create(request: Payload val, respond: {(Payload iso)} iso) =>
     let response: Payload iso = Payload.response()
     response.update("Content-type", "application/json")
     response.add_chunk("{1: 2}")
