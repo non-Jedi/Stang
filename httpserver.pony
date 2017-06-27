@@ -18,32 +18,6 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "net/http"
 
-actor Main
-  """
-  Http server responding according to matrix.org protocol.
-  """
-  new create(env: Env) =>
-    let service: String val = "50000"
-    let limit: USize = 100
-    let host = "localhost"
-
-    let logger = CommonLog(env.out)
-
-    let auth = try
-      env.root as AmbientAuth
-    else
-      env.out.print("no auth to use network")
-      return
-    end
-
-    // Start the top server control actor.
-    HTTPServer(
-      auth,
-      ListenHandler(env),
-      BackendMaker.create(env),
-      logger
-      where service=service, host=host, limit=limit, reversedns=auth)
-
 class ListenHandler
   let _env: Env
 
@@ -109,16 +83,3 @@ class BackendHandler is HTTPHandler
       let response: Payload iso = Payload.response(StatusNotFound)
       respond(consume response)
     end
-
-actor Stang
-  """
-  This is where the matrix logic will begin. Probably here will be routing
-  between the different api versions and then other actors will be spawned to do
-  actual processing of the request.
-  """
-
-  new create(request: Payload val, respond: {(Payload iso)} iso) =>
-    let response: Payload iso = Payload.response()
-    response.update("Content-type", "application/json")
-    response.add_chunk("{1: 2}")
-    respond(consume response)
