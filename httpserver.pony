@@ -71,13 +71,8 @@ class BackendHandler is HTTPHandler
     // Create lambda iso so that we can respond from other actors
     let respond = {(response: Payload iso) => _session(consume response)} iso
     // Only pass to matrix if path starts with /_matrix/
-    let first_path_component =
-      try
-        request.url.path.split(where delim="/")(1)
-      else
-        ""
-      end
-    if first_path_component == "_matrix" then
+    let url = StangURL.create(request.url)
+    if url(1) == "_matrix" then
       Stang.create(request, consume respond)
     else
       let response: Payload iso = Payload.response(StatusNotFound)

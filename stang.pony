@@ -18,7 +18,7 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "net/http"
 
-actor Stang
+class Stang
   """
   This is where the matrix logic will begin. Probably here will be routing
   between the different api versions and then other actors will be spawned to do
@@ -26,7 +26,33 @@ actor Stang
   """
 
   new create(request: Payload val, respond: {(Payload iso)} iso) =>
-    let response: Payload iso = Payload.response()
+    let url = StangURL.create(request.url)
+    // We already know that url(1) is "_matrix"
+    match url(2)
+      | "client" => ClientServerApi.create(request, consume respond)
+    else
+      let response = Payload.response(StatusNotFound)
+      respond(consume response)
+    end
+
+actor ClientServerApi
+  let _respond: {(Payload iso)} iso
+  let _request: Payload val
+
+  new create(request: Payload val, respond: {(Payload iso)} iso) =>
+    _respond = consume respond
+    _request = request
+
+    var response: Payload iso = Payload.response(StatusOK)
     response.update("Content-type", "application/json")
-    response.add_chunk("{1: 2}")
-    respond(consume response)
+
+    let url = StangURL.create(_request.url)
+    // url(1) is "_matrix" and url(2) is "client"
+    match url(3)
+      | "versions" => response.add_chunk("{\"versions\": [\"r0.2.0\"]}")
+    else
+      response = Payload.response(StatusNotFound)
+    end
+
+    _respond(consume response)
+
