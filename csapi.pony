@@ -18,26 +18,24 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "net/http"
 
-class StangURL
-  let source: URL box
+trait CSApi
+  be apply(responder: Responder val)
 
-  new ref create(url: URL box) =>
-    source = url
+actor R0 is CSApi
+  be apply(responder: Responder val) =>
+    let response = Payload.response(StatusNotFound)
+    responder.respond(consume response)
 
-  fun box apply(i: USize val): String box =>
-    try
-      source.path.split(where delim="/")(i)
-    else
-      ""
-    end
+actor Versions is CSApi
+  be apply(responder: Responder val) =>
+    let response = Payload.response(StatusOK)
+    response.add_chunk("{\"versions\":[\"r0.2.0\"]}")
+    responder.respond(consume response)
 
-class val Responder
-  """
-  Convenience class for grouping stuff needed to respond to a request.
-  """
-  let request: Payload val
-  let respond: {(Payload iso)} iso
+class val ApiCollection
+  let r0: R0 tag
+  let versions: Versions tag
 
-  new val create(request': Payload val, respond':{(Payload iso)} iso) =>
-    request = request'
-    respond = consume respond'
+  new val create() =>
+    r0 = R0.create()
+    versions = Versions.create()
