@@ -55,7 +55,7 @@ class ListenHandler
 
   fun ref listening(server: HTTPServer ref) =>
     try
-      (let host, let service) = server.local_address().name()
+      (let host, let service) = server.local_address().name() ?
     else
       _out.print("Couldn't get local address.")
       server.dispose()

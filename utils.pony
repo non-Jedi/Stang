@@ -26,7 +26,7 @@ class StangURL
 
   fun box apply(i: USize val): String box =>
     try
-      source.path.split(where delim="/")(i)
+      source.path.split(where delim="/")(i) ?
     else
       ""
     end
