@@ -29,6 +29,7 @@ actor R0 is CSApi
 actor Versions is CSApi
   be apply(responder: Responder val) =>
     let response = Payload.response(StatusOK)
+    response.update("Content-type", "application/json")
     response.add_chunk("{\"versions\":[\"r0.2.0\"]}")
     responder.respond(consume response)
 

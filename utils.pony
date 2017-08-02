@@ -18,10 +18,10 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "net/http"
 
-class StangURL
+class val StangURL
   let source: URL box
 
-  new ref create(url: URL box) =>
+  new val create(url: URL val) =>
     source = url
 
   fun box apply(i: USize val): String box =>
@@ -37,7 +37,9 @@ class val Responder
   """
   let request: Payload val
   let respond: {(Payload iso)} iso
+  let url: StangURL val
 
   new val create(request': Payload val, respond':{(Payload iso)} iso) =>
     request = request'
     respond = consume respond'
+    url = StangURL.create(request.url)

@@ -101,11 +101,10 @@ class BackendHandler is HTTPHandler
     """
     Process a request. (Check for "_matrix" in path and send on)
     """
-    let url = StangURL.create(request'.url)
     let respond = {(response: Payload iso) => _session(consume response)} iso
     let responder = Responder(request', consume respond)
 
-    match (url(1), url(2))
+    match (responder.url(1), responder.url(2))
       | ("_matrix", "client") => route(responder)
     else
       let response = Payload.response(StatusNotFound)
@@ -116,8 +115,7 @@ class BackendHandler is HTTPHandler
     """
     Sends the request on to an actor based on url.
     """
-    let url = StangURL.create(responder.request.url)
-    match url(3)
+    match responder.url(3)
       | "r0" => _apis.r0(responder)
       | "versions" => _apis.versions(responder)
     else
