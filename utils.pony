@@ -25,6 +25,10 @@ class val StangURL
     source = url
 
   fun box apply(i: USize val): String box =>
+    """
+    Returns the i-th path element from a url. If the i-th element doesn't exist,
+    returns an empty String.
+    """
     try
       source.path.split(where delim="/")(i) ?
     else

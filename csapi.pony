@@ -17,13 +17,34 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use "net/http"
+use "regex"
 
 trait CSApi
   be apply(responder: Responder val)
 
+/*
+  fun box map_room_refs(data: JsonDoc iso, to_stang: Bool box) =>
+    let re_room_id = Regex("^![a-zA-z]{2,50}:[a-zA-Z0-9.:\[\]]+$")
+    let matrix_data_in = MatrixData.create(consume data)
+
+    matrix_data_out = if to_stang then
+      matrix_data_in.replace(re_room_id, )
+*/
+
 actor R0 is CSApi
   be apply(responder: Responder val) =>
-    let response = Payload.response(StatusNotFound)
+    let response = match responder.url(4)
+      // Special cases requiring special handling
+      | "sync" => Payload.response(StatusNotImplemented)
+      | "login" => Payload.response(StatusNotImplemented)
+      | "tokenrefresh" => Payload.response(StatusNotImplemented)
+      | "logout" => Payload.response(StatusNotImplemented)
+      | "register" => Payload.response(StatusNotImplemented)
+      | "account" => Payload.response(StatusNotImplemented)
+    else
+      // Pass request on to servers more or less as is
+      Payload.response(StatusNotFound)
+    end
     responder.respond(consume response)
 
 actor Versions is CSApi
