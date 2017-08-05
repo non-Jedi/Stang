@@ -19,13 +19,13 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 use "json"
 use "regex"
 
-class iso MatrixData
+class ref MatrixData
   """
   Class to encapsulate the json returned by a matrix server.
   """
-  var data: JsonDoc iso
+  var data: JsonDoc ref
 
-  new iso create(data': JsonDoc iso) =>
+  new ref create(data': JsonDoc iso) =>
     data = consume data'
 
   fun ref mangle(mx_sigil: String val, mangle_text: String val) ? =>
@@ -67,7 +67,7 @@ class iso MatrixData
 
     let json_string: String iso = data.string().clone()
     // Find instances of regular expression until there are no more
-    var val_string = recover val String end
+    var val_string = ""
     var stop = false
     repeat
       stop = try
@@ -76,13 +76,13 @@ class iso MatrixData
         json_string.insert_in_place(ISize.from[USize](rmatch.start_pos()) + 2, insert_text)
         false
       else
-        false
+        true
       end
     until stop end
 
-    let new_data = recover iso JsonDoc.create() end
+    let new_data = recover ref JsonDoc.create() end
     new_data.parse(consume json_string) ?
-    data = consume new_data
+    data = new_data
 
   fun ref unmangle(mx_sigil: String val) ? =>
     // TODO
