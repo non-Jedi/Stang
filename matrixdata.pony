@@ -18,7 +18,6 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "json"
 use "regex"
-use "itertools"
 
 class iso MatrixData
   """
