@@ -18,7 +18,7 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "json"
 use "ponytest"
-use "package:.."
+use "package:../src"
 
 class iso _TestMatrixDataMangle is UnitTest
   let input: String val =
