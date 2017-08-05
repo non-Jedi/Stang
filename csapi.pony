@@ -18,18 +18,21 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "net/http"
 use "regex"
+use "json"
 
 trait CSApi
   be apply(responder: Responder val)
 
-/*
-  fun box map_room_refs(data: JsonDoc iso, to_stang: Bool box) =>
-    let re_room_id = Regex("^![a-zA-z]{2,50}:[a-zA-Z0-9.:\[\]]+$")
-    let matrix_data_in = MatrixData.create(consume data)
+  fun box map_room_refs(data: JsonDoc iso, to_stang: Bool box) ? =>
+    let mdata = MatrixData.create(consume data)
 
-    matrix_data_out = if to_stang then
-      matrix_data_in.replace(re_room_id, )
-*/
+    if to_stang then
+      mdata.mangle("!#", "example") ?
+    else
+      mdata.unmangle("!#") ?
+    end
+
+    consume mdata
 
 actor R0 is CSApi
   be apply(responder: Responder val) =>

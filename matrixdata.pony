@@ -18,6 +18,7 @@ with Stang. If not, see <http://www.gnu.org/licenses/>.
 
 use "json"
 use "regex"
+use "itertools"
 
 class iso MatrixData
   """
@@ -28,31 +29,62 @@ class iso MatrixData
   new iso create(data': JsonDoc iso) =>
     data = consume data'
 
-  fun ref mangle(find: Regex, mangle_text: String val) ? =>
-    """
-    For now this just looks for instances of the regex within the string
-    representation of the json, but in the future, it will actually traverse
-    the json document, allowing usage of `^` and `$` in regular expressions.
+  fun ref mangle(mx_sigil: String val, mangle_text: String val) ? =>
+    /*TODO: change api of this function to make it matrix-specific. This
+    shouldn't have a regex as an input argument but construct one itself from
+    a given string(s)*/
 
-    For now, `find` must not match on the localparts containing `~`
-
-    An exception is raised if unable to parse new string as json.
     """
-    let original_string = data.string()
-    let new_string = try
-      let rmatch = find(original_string) ?
-      let s: String iso = original_string.clone()
-      s.insert_in_place(ISize.from[USize](rmatch.start_pos()) + 1, "~" + mangle_text + "~")
-      consume s
+    Mangles matrix identifiers starting with any character in `mx_sigil` so that
+    there won't be collisions if a user is in the same room on multiple
+    accounts. "~`mangle_text`~" is inserted into the matrix_identifier after the
+    sigil.
+
+    For now this simply searches and replaces within the string representation
+    of the json document, but traversing the document itself will be implemented
+    eventually.
+
+    `mangle_text` must match the regex expression `^[a-zA-Z0-9]+$`
+
+    An exception is raised if unable to parse new string as json or if
+    `mangle_text` doesn't match the above regex expression. When traversing the
+    json document is implemented, this exception will be raised purely based on
+    the correctness of the arguments passed in.
+    """
+    // This block checks input formats; regex compiling shouldn't raise error
+    let okay = try
+      let r_mangle_text = Regex("^[a-zA-Z0-9]+$") ?
+      let r_mx_sigil = Regex("^[!#@+$]$") ?
+      (r_mangle_text == mangle_text) and (r_mx_sigil == mx_sigil)
     else
-      // If we can't find regex in string, return original string, and recur end
-      original_string
+      false
+    end
+    if not okay then
+      error
     end
 
-    // If unable to parse string as json, raise an exception
-    let replaced_data = recover iso JsonDoc.create() end
-    replaced_data.parse(new_string) ?
-    data = consume replaced_data
-    if not (new_string is original_string) then
-      mangle(find, mangle_text) ?
-    end
+    let insert_text = "~" + mangle_text + "~"
+    let re_all = Regex("\"[" + mx_sigil + "][^\\s\"'~]+:[^\\s\"']+\"") ?
+
+    let json_string: String iso = data.string().clone()
+    // Find instances of regular expression until there are no more
+    var val_string = recover val String end
+    var stop = false
+    repeat
+      stop = try
+        val_string = recover val json_string.clone() end
+        let rmatch: Match = re_all(val_string) ?
+        json_string.insert_in_place(ISize.from[USize](rmatch.start_pos()) + 2, insert_text)
+        false
+      else
+        false
+      end
+    until stop end
+
+    let new_data = recover iso JsonDoc.create() end
+    new_data.parse(consume json_string) ?
+    data = consume new_data
+
+  fun ref unmangle(mx_sigil: String val) ? =>
+    // TODO
+    error
